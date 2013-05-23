@@ -52,7 +52,7 @@ inline void pull_column(uint8_t col) {
 inline void release_column(uint8_t col) {
 }
 
-uint8_t probe_row(uint8_t row) {
+inline uint8_t probe_row(uint8_t row) {
   return *row_pin[row] & row_bit[row];
 }
 

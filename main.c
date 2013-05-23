@@ -33,6 +33,7 @@
 #include "hid_liber.h"
 
 #define MODIFIER_KEY 1
+
 typedef struct _key {
   uint8_t value;
   uint8_t type;
@@ -41,6 +42,7 @@ typedef struct _key {
 
 uint8_t key_status[NKEY];
 uint16_t __layout[NKEY] = ANSI_ISO_JIS;
+//uint16_t __layout[NKEY] = DVORAK;
 KEY * layout = (KEY *)__layout;
 
 /* queue     contains the keys that are sent in the HID packet 
