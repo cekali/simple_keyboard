@@ -27,12 +27,18 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
+#ifdef DEBUG
+#include "usb_keyboard_debug.h"
+#else
 #include "usb_keyboard.h"
+#endif
+
+#include "print.h"
 #include "keycode.h"
 #include "avr_extra.h"
-#include "hid_liber.h"
+#include KEYBOARD_MODEL
 
-#define MODIFIER_KEY 1
+#define MODIFIER_KEY 0x01
 
 typedef struct _key {
   uint8_t value;
@@ -41,9 +47,9 @@ typedef struct _key {
 
 
 uint8_t key_status[NKEY];
-uint16_t __layout[NKEY] = ANSI_ISO_JIS;
-//uint16_t __layout[NKEY] = DVORAK;
-KEY * layout = (KEY *)__layout;
+uint8_t key_bounce[NKEY];
+uint16_t _layout[NKEY] = KEYBOARD_LAYOUT;
+KEY * layout = (KEY *)_layout;
 
 /* queue     contains the keys that are sent in the HID packet 
    mod_keys  is the bit pattern corresponding to pressed modifier keys */
@@ -52,42 +58,59 @@ uint8_t mod_keys = 0;
 
 /* void pull_column(uint8_t row); */
 /* void update_leds(uint8_t keyboard_leds); */
+void setup_bounce_timer(void);
 void init(void);
 void send(void);
 void key_press(uint8_t key);
 void key_release(uint8_t key);
 
+int count = 0;
+ISR(INTERRUPT_FUNCTION) {
+  bounce_timer_disable();
+
+  for(uint8_t col = 0, key = 0; col < NCOL; col++) {
+    pull_column(col);
+    for(uint8_t row = 0; row < NROW; row++, key++) {
+      key_status[key] = (key_status[key] & 0xFE) | probe_row(row);
+      if(key_status[key] == 0x7F)
+        key_press(key);
+      else if(key_status[key] == 0x80)
+        key_release(key);
+      key_status[key] = (key_status[key]<<1) | (key_status[key]&0x01);
+    }
+  }
+  
+#ifdef DEBUG
+  count ++;
+  if(count > 100) {
+    count = 0;
+    for(uint8_t i = 0; i < 7; i++)
+      phex(queue[i]);
+    print("\n");
+    
+    for(uint8_t key = 0; key < NKEY; key++)
+      phex(key_bounce[key]);
+    print("\n");
+  }
+#endif  
+
+  if(mod_keys == (uint8_t)(KEY_LEFT_SHIFT | KEY_RIGHT_SHIFT))
+    jump_bootloader();
+
+  update_leds(keyboard_leds);
+
+  bounce_timer_enable();
+}
+
 int main(void) {
   init();
-  
-  uint8_t previous[NKEY];
-  for(uint8_t key = 0; key < NKEY; key++)
-    previous[key] = 0;
-
-  while(true) {
-    for(uint8_t col = 0, key = 0; col < NCOL; col++) {
-      pull_column(col);
-      for(uint8_t row = 0; row < NROW; row++, key++) {
-        uint8_t this = probe_row(row);
-        // Detect rising and falling edges on key status
-        if(this && !previous[key]){
-          key_press(key);
-          _delay_ms(5);
-        }
-        else if(previous[key] && !this) {
-          key_release(key);
-          _delay_ms(5);
-        }
-        previous[key] = this;
-      }
-    }
-    update_leds(keyboard_leds);
-  }
+  bounce_timer_enable();
+  while(true) ;
 }
 
 /* */
 void send(void) {
-  for(uint8_t i=0; i<6; i++)
+  for(uint8_t i = 0; i < 6; i++)
     keyboard_keys[i] = queue[i]<255? layout[queue[i]].value: 0;
   keyboard_modifier_keys = mod_keys;
   usb_keyboard_send();
@@ -95,12 +118,10 @@ void send(void) {
 
 /* */
 void key_press(uint8_t key) {
-  uint8_t i;
-  key_status[key] = true;
   if(layout[key].type == MODIFIER_KEY)
     mod_keys |= layout[key].value;
   else {
-    for(i = 5; i > 0; i--) queue[i] = queue[i-1];
+    for(uint8_t i = 5; i > 0; i--) queue[i] = queue[i-1];
     queue[0] = key;
   }
   send();
@@ -109,14 +130,13 @@ void key_press(uint8_t key) {
 /* */
 void key_release(uint8_t key) {
   uint8_t i;
-  key_status[key] = false;
   if(layout[key].type == MODIFIER_KEY)
     mod_keys &= ~layout[key].value;
   else {
     for(i = 0; i < 6; i++) 
       if(queue[i]==key)
         break;
-    for(i = i; i < 6; i++)
+    for( ; i < 6; i++)
       queue[i] = queue[i+1];
   }
   send();
@@ -126,9 +146,11 @@ void key_release(uint8_t key) {
 void init(void) {
   usb_init();
   while(!usb_configured());
-  init_keyboard();
+  keyboard_init();
   mod_keys = 0;
   for(uint8_t key = 0; key < NKEY; key++)
     key_status[key] = false;
+  for(uint8_t key = 0; key < NKEY; key++)
+    key_bounce[key] = 0x00;
   sei();  // Enable interrupts
 }

@@ -34,15 +34,6 @@ const uint8_t   row_bit[NROW] = {
 /* Specifies the ports and pin numbers for the columns */
 const uint8_t col_bit[NCOL] = {  0x00,   0x02,   0x04,   0x06,   0x08,   0x0A,   0x0C,   0x0E};
 
-/* const uint8_t   col_bit[NCOL] = {  0b00000000,    */
-/*                                    0b00000010, */
-/*                                    0b00000100, */
-/*                                    0b00000110, */
-/*                                    0b00001000, */
-/*                                    0b00001010, */
-/*                                    0b00001100, */
-/*                                    0b00001110}; */
-
 inline void pull_column(uint8_t col) {
   PORTB &= 0b11110001;
   PORTB |= col_bit[col];
@@ -53,17 +44,15 @@ inline void release_column(uint8_t col) {
 }
 
 inline uint8_t probe_row(uint8_t row) {
-  return *row_pin[row] & row_bit[row];
+  return ( *row_pin[row] & row_bit[row] ) != 0;
 }
 
 inline void update_leds(uint8_t keyboard_leds) {
-  //  PORTB = (PORTB & 0x9F) | (~(keyboard_leds << 4) & 0x60);
-  //  DDRB  = (DDRB  & 0x9F) | (~(keyboard_leds << 4) & 0x60);
   PORTB = (PORTB & 0b10011111) | ((~keyboard_leds << 4) & 0b01100000);
 }
 
 
-void init_keyboard() {
+void keyboard_init() {
   /* 16MHz operation */
   CPU_PRESCALE(0);
   /* Disable JTAG */
@@ -81,6 +70,28 @@ void init_keyboard() {
   /* LEDs are on pins B6,7. They are set as outputs. */
   DDRB  |= 0b01100000;
   PORTB |= 0b01100000;
+  bounce_timer_setup();
 }
 
-void toggle_leds(void) {}
+void bounce_timer_setup(void) {
+  TCCR0A |=      // Timer control register 0A
+    (1<<WGM01);  // Set CTC, clear timer on compare
+  TCCR0B |=      // Timer control register 0A
+    (1<<CS00) |  // Prescaler 1024, frequency 15.6kHz (Combined with next line)
+    (1<<CS02);   // Prescaler 256, frequency 62.5kHz (This line alone)
+  OCR0A = 16;    // Output compare register 0A
+}
+
+inline void bounce_timer_enable(void) {
+  TIMSK0 |=      // Timer interrupt mask register 0
+    (1<<OCIE0A); // Enable timer interrupt on compare match with OCR0A
+}
+
+inline void bounce_timer_disable(void) {
+  TIMSK0 &=       // Timer interrupt mask register 0
+    ~(1<<OCIE0A); // Disable timer interrupt on compare match with OCR0A
+}
+
+void toggle_leds(void) {
+  PORTB = (PORTB & 0b10011111) | (~PORTB & 0b01100000);
+}

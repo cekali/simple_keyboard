@@ -39,33 +39,38 @@
 # To rebuild project do "make clean" then "make all".
 #----------------------------------------------------------------------------
 
+DEBUG = true
+
+# Keyboard model
+
+# HID Liberation Device
+MODEL = hid_liber
+LAYOUT = ANSI_ISO_JIS
+MCU = atmega32u4
+F_CPU = 16000000
+B_LOADER = \"jmp\ 0x7000\"
+
+# Phantom
+#MODEL = phantom
+#LAYOUT = ANSI_ISO_JIS
+#MCU = atmega32u4
+#F_CPU = 16000000
+#B_LOADER = \"jmp\ 0x7E00\"
+
+
+## You probably do not want to change anything below this line ##
+## ----------------------------------------------------------- ##
 
 # Target file name (without extension).
 TARGET = main
 
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC =	$(TARGET).c \
-	hid_liber.c \
-	usb_keyboard.c
-
-
-# MCU name, you MUST set this to match the board you are using
-# type "make clean" after changing this, so all files will be rebuilt
-#
-#MCU = at90usb162       # Teensy 1.0
-MCU = atmega32u4        # Teensy 2.0
-#MCU = at90usb646       # Teensy++ 1.0
-#MCU = at90usb1286      # Teensy++ 2.0
-
-
-# Processor frequency.
-#   Normally the first thing your program should do is set the clock prescaler,
-#   so your program will run at the correct speed.  You should also set this
-#   variable to same clock speed.  The _delay_ms() macro uses this, and many
-#   examples use this variable to calculate timings.  Do not add a "UL" here.
-F_CPU = 16000000
-
+ifdef DEBUG
+SRC =	$(TARGET).c $(MODEL).c 	usb_keyboard_debug.c print.c
+else
+SRC =	$(TARGET).c $(MODEL).c 	usb_keyboard.c
+endif
 
 # Output format. (can be srec, ihex, binary)
 FORMAT = ihex
@@ -120,7 +125,7 @@ CSTANDARD = -std=gnu99
 
 
 # Place -D or -U options here for C sources
-CDEFS = -DF_CPU=$(F_CPU)UL
+CDEFS = -DF_CPU=$(F_CPU)UL -DBOOTLOADER_JUMP=$(B_LOADER) -DKEYBOARD_MODEL=\"$(MODEL).h\" -DKEYBOARD_LAYOUT=$(LAYOUT)
 
 
 # Place -D or -U options here for ASM sources
