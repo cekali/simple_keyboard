@@ -1,4 +1,30 @@
 # Hey Emacs, this is a -*- makefile -*-
+
+## Makefile for simple_keyboard by Fredrik Atmer. Adapted from the
+## pjrx.com usb_keyboard project.
+
+## Keyboard models. Un-comment the options you want.
+
+## HID Liberation Device
+MODEL = hid_liber
+LAYOUT = ANSI_ISO_JIS
+#LAYOUT = DVORAK
+MCU = atmega32u4
+F_CPU = 16000000
+B_LOADER = \"jmp\ 0x7000\"
+
+## Phantom
+#MODEL = phantom
+#LAYOUT = ANSI_ISO_JIS
+#MCU = atmega32u4
+#F_CPU = 16000000
+#B_LOADER = \"jmp\ 0x7E00\"
+
+# Un-comment to turn on debugging.
+#DEBUG = true
+
+## You probably do not want to change anything below //Fredrik
+
 #----------------------------------------------------------------------------
 # WinAVR Makefile Template written by Eric B. Weddington, Jörg Wunsch, et al.
 #
@@ -39,38 +65,13 @@
 # To rebuild project do "make clean" then "make all".
 #----------------------------------------------------------------------------
 
-DEBUG = true
-
-# Keyboard model
-
-# HID Liberation Device
-MODEL = hid_liber
-LAYOUT = ANSI_ISO_JIS
-MCU = atmega32u4
-F_CPU = 16000000
-B_LOADER = \"jmp\ 0x7000\"
-
-# Phantom
-#MODEL = phantom
-#LAYOUT = ANSI_ISO_JIS
-#MCU = atmega32u4
-#F_CPU = 16000000
-#B_LOADER = \"jmp\ 0x7E00\"
-
-
-## You probably do not want to change anything below this line ##
-## ----------------------------------------------------------- ##
 
 # Target file name (without extension).
 TARGET = main
 
 
 # List C source files here. (C dependencies are automatically generated.)
-ifdef DEBUG
-SRC =	$(TARGET).c $(MODEL).c 	usb_keyboard_debug.c print.c
-else
-SRC =	$(TARGET).c $(MODEL).c 	usb_keyboard.c
-endif
+SRC =	$(TARGET).c $(MODEL).c usb_keyboard_debug.c print.c
 
 # Output format. (can be srec, ihex, binary)
 FORMAT = ihex
@@ -438,6 +439,7 @@ sizebefore:
 sizeafter:
 	@if test -f $(TARGET).elf; then echo; echo $(MSG_SIZE_AFTER); $(ELFSIZE); \
 	2>/dev/null; echo; fi
+	cp main.hex binaries/$(MODEL)_$(LAYOUT).hex
 
 
 

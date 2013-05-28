@@ -24,17 +24,17 @@
 #define LAYOUT ANSI_ISO_JIS
 
 #define NROW  18
-#define NCOL  8
-#define NKEY  144
+#define NCOL   8
+#define NKEY 144
 
 void pull_column(uint8_t col);
 void release_column(uint8_t col);
 uint8_t probe_row(uint8_t row);
 void update_leds(uint8_t keyboard_leds);
 void keyboard_init(void);
-void bounce_timer_setup(void);
-void bounce_timer_enable(void);
-void bounce_timer_disable(void);
+void poll_timer_setup(void);
+void poll_timer_enable(void);
+void poll_timer_disable(void);
 void toggle_leds(void);
 
 /* Convert physical keyboard layout to matrix array.
@@ -102,7 +102,7 @@ void toggle_leds(void);
     KF6, KH1, KG0, KH0, KJ0, KI0, KI2, KK2, KK0, KL0, KA0, KC2, KF4,           KN1,       \
     KO7, KE6, KB1,           KP1,                     KB2, KR4, KA2, KO0, KN2, KP2, KQ2 ) \
 /*A         B         C         D         E         F         G         H         I    
-  J         K         L         M         N         O         P         Q         R */         \
+  J         K         L         M         N         O         P         Q         R */    \
 {                                                                                         \
   KC_##KA0, KC_NO,    KC_NO,    KC_##KD0, KC_NO,    KC_NO,    KC_##KG0, KC_##KH0, KC_##KI0,    /* 0 */ \
   KC_##KJ0, KC_##KK0, KC_##KL0, KC_NO,    KC_NO,    KC_##KO0, KC_NO,    KC_NO,    KC_NO,               \
