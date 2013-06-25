@@ -4,14 +4,8 @@
 
 struct { uint8_t *const pin; const uint8_t bit; } rows[NROW] = 
   {
-    {_PINC, _BIT2}, // 0
-    {_PINC, _BIT7}, // 1
-    {_PINB, _BIT1}, // 2
-    {_PINB, _BIT2}, // 3
-    {_PINB, _BIT3}, // 4
-    {_PINB, _BIT4}, // 5
-    {_PINB, _BIT5}, // 6
-    {_PINB, _BIT6}  // 7
+    {_PINC, _BIT2}, {_PINB, _BIT1}, {_PINB, _BIT2}, {_PINB, _BIT3},
+    {_PINC, _BIT7}, {_PINB, _BIT4}, {_PINB, _BIT5}, {_PINB, _BIT6} 
   };
 
 /* Specifies the bit patterns to activate the columns. The columns are
@@ -21,28 +15,9 @@ struct { uint8_t *const pin; const uint8_t bit; } rows[NROW] =
    bits to one deactivates it. */
 const uint8_t col_bits[NCOL] =  
   {
-    //-210-354  col0-5 of decoders
-    0b00000011, // A 0000
-    0b00010011, // B 0001
-    0b00100011, // C 0010
-    0b00110011, // D 0011
-    0b01000011, // E 0100
-    0b01010011, // F 0101
-    0b01100011, // G 0110
-    0b01110011, // H 0111
-    0b00000111, // I 1000
-    0b00010111, // J 1001
-    //-210-354  
-    0b01000100, // K 0000
-    0b01010100, // L 0001
-    0b01100100, // M 0010
-    0b01110100, // N 0011
-    0b01000101, // O 0100
-//  0b01010101, // - 0101
-//  0b01100101, // - 0110
-    0b01110101, // P 0111
-    0b01000110, // Q 1000
-    0b01010110, // R 1001
+    0b01100100, 0b01010100, 0b01000100, 0b00010111, 0b00000111, 0b01110011,
+    0b01100011, 0b01010011, 0b01000011, 0b00110011, 0b00100011, 0b00010011,
+    0b00000011, 0b01010110, 0b01000110, 0b01110101, 0b01000101, 0b01110100 
   };
 
 /* Activate one of the columns in the matrix. And wait for the
