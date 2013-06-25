@@ -26,15 +26,15 @@
 #include <avr/pgmspace.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
-/* Include keycode definitions in tmk_keyboard standard. */
-#include "keycode.h"
-/* Extra definitions for AVR constants to make life easier. */
-#include "avr_extra.h"
+/* Include keycode definitions. */
+#include "lib/keycode.h"
+/* Extra definitions for AVR stuff. */
+#include "lib/avr_extra.h"
 /* Include the correct keyboard model. Defined in Makefile. */
 #include KEYBOARD_MODEL
 
-#include "usb_keyboard_debug.h"
-#include "print.h"
+#include "lib/usb_keyboard_debug.h"
+#include "lib/print.h"
 
 /* A key can be either a normal character or a modifier key. A struct
    is used to keep track of the keycode and type of key. Layouts are
@@ -69,8 +69,16 @@ void key_release(uint8_t k);
 void debug_print(void);
 
 
-ISR(INTERRUPT_FUNCTION) {
-  poll_timer_disable(); // Turn interrupt polling off
+ISR(SCAN_INTERRUPT_FUNCTION) {
+  /* We want to be able to scan often enough to fill the debounce
+     register within the specified debounce time of the switches (5ms
+     for Cherry MX). We do NOT want to enter a call to another scan
+     before the previous one finishes. Some care needs to be taken
+     when choosing the parameters in poll_timer_setup() located in
+     "KEYBOARD_MODEL".c. Scans may take different amount of time to
+     finish due to other interrupt based routines. The simple solution
+     is to disable the scan interrupts. */
+  poll_timer_disable();
 
   /* Poll the matrix. 
 
@@ -114,13 +122,14 @@ ISR(INTERRUPT_FUNCTION) {
       key[k].bounce <<= 1;
     }
   }
+  release_columns();
 
   /* Check if the trigger to jump to the bootloader has been
      activated. In this case when both shift keys are pressed at the
      same time.
      jump_bootloader is defined in usb_keyboard.c */
-  /* if(mod_keys == (uint8_t)(KC_LSFT | KC_RSFT)) */
-  /*   jump_bootloader(); */
+  // if(mod_keys == (uint8_t)(KC_LSFT | KC_RSFT))
+  //   jump_bootloader();
 
   /* Update the keyboard keyboard LEDs. 
      update_leds is defined in "KEYBOARD_MODEL".c */
@@ -129,7 +138,9 @@ ISR(INTERRUPT_FUNCTION) {
 #ifdef DEBUG
   debug_print();
 #endif  
-  poll_timer_enable(); // Turn polling back on again
+
+  /* Turn polling back on again. */
+  poll_timer_enable();
 }
 
 
@@ -137,7 +148,7 @@ ISR(INTERRUPT_FUNCTION) {
 int main(void) {
   init();
   poll_timer_enable(); //Turn interrupt polling on
-  while(true) ;
+  for(ever);
 }
 
 
@@ -186,7 +197,7 @@ void key_release(uint8_t k) {
 }
 
 
-/* Call initialization functions */
+/* Call initialization functions. */
 void init(void) {
   usb_init();
   while(!usb_configured());
@@ -198,7 +209,7 @@ void init(void) {
 }
 
 
-/* Prints debug information */
+/* Prints debug information. */
 uint8_t debug_counter = 0;
 void debug_print(void) {
   debug_counter++;

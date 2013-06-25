@@ -5,13 +5,20 @@
 
 ## Keyboard models. Un-comment the options you want.
 
-## HID Liberation Device
-MODEL = hid_liber
+## Frosty Flake
+MODEL = frosty
 LAYOUT = ANSI_ISO_JIS
-#LAYOUT = DVORAK
-MCU = atmega32u4
+MCU = atmega32u2
 F_CPU = 16000000
 B_LOADER = \"jmp\ 0x7000\"
+
+## HID Liberation Device
+#MODEL = hid_liber
+#LAYOUT = ANSI_ISO_JIS
+##LAYOUT = DVORAK
+#MCU = atmega32u4
+#F_CPU = 16000000
+#B_LOADER = \"jmp\ 0x7000\"
 
 ## Phantom
 #MODEL = phantom
@@ -71,7 +78,7 @@ TARGET = main
 
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC =	$(TARGET).c $(MODEL).c usb_keyboard_debug.c print.c
+SRC =	$(TARGET).c models/$(MODEL).c lib/usb_keyboard_debug.c lib/print.c
 
 # Output format. (can be srec, ihex, binary)
 FORMAT = ihex
@@ -100,7 +107,7 @@ ASRC =
 # Optimization level, can be [0, 1, 2, 3, s]. 
 #     0 = turn off optimization. s = optimize for size.
 #     (Note: 3 is not always the best optimization level. See avr-libc FAQ.)
-OPT = s
+OPT = 2
 
 
 # Debugging format.
@@ -126,7 +133,7 @@ CSTANDARD = -std=gnu99
 
 
 # Place -D or -U options here for C sources
-CDEFS = -DF_CPU=$(F_CPU)UL -DBOOTLOADER_JUMP=$(B_LOADER) -DKEYBOARD_MODEL=\"$(MODEL).h\" -DKEYBOARD_LAYOUT=$(LAYOUT)
+CDEFS = -DF_CPU=$(F_CPU)UL -DBOOTLOADER_JUMP=$(B_LOADER) -DKEYBOARD_MODEL=\"models/$(MODEL).h\" -DKEYBOARD_LAYOUT=$(LAYOUT)
 
 
 # Place -D or -U options here for ASM sources
@@ -593,19 +600,20 @@ clean: begin clean_list end
 clean_list :
 	@echo
 	@echo $(MSG_CLEANING)
-	$(REMOVE) $(TARGET).hex
-	$(REMOVE) $(TARGET).eep
-	$(REMOVE) $(TARGET).cof
-	$(REMOVE) $(TARGET).elf
-	$(REMOVE) $(TARGET).map
-	$(REMOVE) $(TARGET).sym
-	$(REMOVE) $(TARGET).lss
-	$(REMOVE) $(SRC:%.c=$(OBJDIR)/%.o)
-	$(REMOVE) $(SRC:%.c=$(OBJDIR)/%.lst)
-	$(REMOVE) $(SRC:.c=.s)
-	$(REMOVE) $(SRC:.c=.d)
-	$(REMOVE) $(SRC:.c=.i)
-	$(REMOVEDIR) .dep
+	rm -f *.hex
+	rm -rf .dep
+	rm -f *.eep lib/*.eep models/*.eep
+	rm -f *.cof lib/*.cof	models/*.cof	
+	rm -f *.elf	lib/*.elf	models/*.elf	
+	rm -f *.map	lib/*.map	models/*.map	
+	rm -f *.sym lib/*.sym models/*.sym 
+	rm -f *.lss lib/*.lss models/*.lss 
+	rm -f *.o 	lib/*.o 	models/*.o 	
+	rm -f *.lst lib/*.lst models/*.lst 
+	rm -f *.s 	lib/*.s 	models/*.s 	
+	rm -f *.d 	lib/*.d 	models/*.d 	
+	rm -f *.i 	lib/*.i 	models/*.i 	
+	rm -f *~    lib/*~    models/*~    
 
 
 # Create object files directory
