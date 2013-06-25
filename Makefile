@@ -5,14 +5,23 @@
 
 ## Keyboard models. Un-comment the options you want.
 
-## Frosty Flake
-MODEL = frosty
-LAYOUT = ANSI_ISO_JIS
+## Kitten Paw
+MODEL = paw
+#LAYOUT = ANSI_ISO_JIS
+LAYOUT = TEST_COLS
+#LAYOUT = ANSI_ISO_JIS
 MCU = atmega32u2
 F_CPU = 16000000
 B_LOADER = \"jmp\ 0x7000\"
 
-## HID Liberation Device
+### Frosty Flake
+#MODEL = frosty
+#LAYOUT = ANSI_ISO_JIS
+#MCU = atmega32u2
+#F_CPU = 16000000
+#B_LOADER = \"jmp\ 0x7000\"
+
+### HID Liberation Device
 #MODEL = hid_liber
 #LAYOUT = ANSI_ISO_JIS
 ##LAYOUT = DVORAK
@@ -20,7 +29,7 @@ B_LOADER = \"jmp\ 0x7000\"
 #F_CPU = 16000000
 #B_LOADER = \"jmp\ 0x7000\"
 
-## Phantom
+### Phantom
 #MODEL = phantom
 #LAYOUT = ANSI_ISO_JIS
 #MCU = atmega32u4

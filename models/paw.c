@@ -4,32 +4,57 @@
 
 struct { uint8_t *const pin; const uint8_t bit; } rows[NROW] = 
   {
-    {_PINC, _BIT2}, {_PIND, _BIT0}, {_PIND, _BIT1}, {_PINC, _BIT7},
-    {_PIND, _BIT5}, {_PIND, _BIT6}, {_PIND, _BIT2}, {_PIND, _BIT4}
+    {_PINC, _BIT2}, // 0
+    {_PINC, _BIT7}, // 1
+    {_PINB, _BIT1}, // 2
+    {_PINB, _BIT2}, // 3
+    {_PINB, _BIT3}, // 4
+    {_PINB, _BIT4}, // 5
+    {_PINB, _BIT5}, // 6
+    {_PINB, _BIT6}  // 7
   };
 
 /* Specifies the bit patterns to activate the columns. The columns are
-   driven through two 4-10 decoders via pins B1-B6. The two lower bits
+   driven through two 4-10 decoders via pins D012456. The two lower bits
    are common among the decoders. The two higher bits are connected to
    separate pins on the controller. Setting both of a decoders high
    bits to one deactivates it. */
 const uint8_t col_bits[NCOL] =  
   {
-    0b00111100, 0b01100110, 0b00111000, 0b01110010, 0b00011110, 0b00111110,
-    0b01100010, 0b01100000, 0b01100100, 0b01101000, 0b01101010, 0b01101100,
-    0b01101110, 0b01110000, 0b01011000, 0b00111010, 0b00011010, 0b00011000
+    //-210-354  col0-5 of decoders
+    0b00000011, // A 0000
+    0b00010011, // B 0001
+    0b00100011, // C 0010
+    0b00110011, // D 0011
+    0b01000011, // E 0100
+    0b01010011, // F 0101
+    0b01100011, // G 0110
+    0b01110011, // H 0111
+    0b00000111, // I 1000
+    0b00010111, // J 1001
+    //-210-354  
+    0b01000100, // K 0000
+    0b01010100, // L 0001
+    0b01100100, // M 0010
+    0b01110100, // N 0011
+    0b01000101, // O 0100
+//  0b01010101, // - 0101
+//  0b01100101, // - 0110
+    0b01110101, // P 0111
+    0b01000110, // Q 1000
+    0b01010110, // R 1001
   };
 
 /* Activate one of the columns in the matrix. And wait for the
    electrical state to settle. */
 inline void pull_column(uint8_t c) {
-  PORTB = (PORTB & 0b10000001) | col_bits[c];
+  PORTD = (PORTD & 0b10001000) | col_bits[c];
   _delay_us(SETTLE_TIME_US);
 }
 
 /* De-activate columns. */
 inline void release_columns(void) {
-  PORTB = (PORTB & 0b10000001) | 0b01111110;
+  PORTD = (PORTD & 0b10001000) | 0b01110111;
 }
 
 /* Probe one of the rows to look for pressed keys. Returns 0b00000001
@@ -59,10 +84,10 @@ void keyboard_init() {
   /* Disable JTAG */
   MCUCR |= 0x80; MCUCR |= 0x80;
   /* Column pins are set as outputs. */
-  DDRB |=  0b01111110; PORTB &= 0b10000001;
+  DDRD |= 0b01110111; PORTD &= 0b10001000;
   /* Row pins are set as inputs (internal pull-up). */
   DDRC &= 0b01111011; PORTC |= 0b10000100;
-  DDRD &= 0b10001000; PORTD |= 0b01110111;
+  DDRB &= 0b10000001; PORTB |= 0b01111110;
   /* LEDs pins set as outputs. */
   DDRB |= 0b10000000;
   DDRC |= 0b01100000;
