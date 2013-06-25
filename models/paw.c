@@ -45,12 +45,12 @@ inline uint8_t probe_row(uint8_t r) {
    LEDs are active low. The contents of keyboard_leds is shifted into
    the correct position and masked out. */
 inline void update_leds(uint8_t keyboard_leds) {
-  /* Caps Lock on pin B7. */
-  PORTB = (PORTB & 0b01111111) | ((~keyboard_leds << 6) & 0b10000000);
-  /* Win Lock on pin C5 (used as Num Lock here). */
+  /* Scroll Lock on pin B7. */
+  PORTB = (PORTB & 0b01111111) | ((~keyboard_leds << 5) & 0b10000000);
+  /* Num Lock on pin C5. */
   PORTC = (PORTC & 0b11011111) | ((~keyboard_leds << 5) & 0b00100000);
-  /* Scroll Lock on pin C6. */
-  PORTC = (PORTC & 0b10111111) | ((~keyboard_leds << 4) & 0b01000000);
+  /* Caps Lock on pin C6. */
+  PORTC = (PORTC & 0b10111111) | ((~keyboard_leds << 5) & 0b01000000);
 }
 
 void keyboard_init() {
